@@ -311,30 +311,16 @@ async function uploadImage() {
             method: 'POST',
             body: formData
         });
-        
         const data = await response.json();
         clearInterval(progressInterval);
-        
-        if (response.ok) {
-            showLoading(true, 100);
-            setTimeout(() => {
-                originalGrid = data.grid.map(row => [...row]);
-                displayGrid(data.grid);
-                showMessage('✨ Sudoku recognized from image!', 'success', 'fas fa-magic');
-                startTime = null;
-                errorCount = 0;
-                hintCount = 0;
-                document.getElementById('timeElapsed').textContent = '00:00';
-                showLoading(false);
-            }, 500);
-        } else {
-            showMessage(data.error || 'Failed to recognize Sudoku from image', 'error', 'fas fa-times-circle');
-            showLoading(false);
-        }
+
+        // Always show the "feature coming soon" message in green
+        showLoading(false);
+        showMessage(data.message || '🟢 Feature available soon!', 'success', 'fas fa-check-circle');
     } catch (error) {
         clearInterval(progressInterval);
-        showMessage('Error processing image: ' + error.message, 'error', 'fas fa-exclamation-triangle');
         showLoading(false);
+        showMessage('Error processing image: ' + error.message, 'error', 'fas fa-exclamation-triangle');
     } finally {
         fileInput.value = '';
     }
@@ -502,4 +488,5 @@ document.addEventListener('visibilitychange', () => {
 });
 
 // Handle before unload for auto-save
+
 window.addEventListener('beforeunload', autoSave);
