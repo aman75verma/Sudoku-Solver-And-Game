@@ -294,7 +294,7 @@ async function uploadImage() {
     if (!file) return;
     
     showLoading(true, 0);
-    showMessage('📸 Analyzing image with AI...', 'info', 'fas fa-camera');
+    showMessage('📸 Analyzing image ...', 'info', 'fas fa-camera');
     
     const formData = new FormData();
     formData.append('image', file);
@@ -307,16 +307,31 @@ async function uploadImage() {
     }, 200);
     
     try {
-        const response = await fetch('/upload', {
-            method: 'POST',
-            body: formData
-        });
+        const response = await fetch('/upload', { method: 'POST', body: formData });
         const data = await response.json();
         clearInterval(progressInterval);
 
-        // Always show the "feature coming soon" message in green
-        showLoading(false);
-        showMessage(data.message || '🟢 Feature available soon!', 'success', 'fas fa-check-circle');
+        if (data.grid) {
+            // If grid is returned, display it
+            originalGrid = data.grid.map(row => [...row]);
+            displayGrid(data.grid);
+            showLoading(false);
+            showMessage('✨ Sudoku recognized from image!', 'success', 'fas fa-magic');
+            startTime = null;
+            errorCount = 0;
+            hintCount = 0;
+            document.getElementById('timeElapsed').textContent = '00:00';
+            updateStats();
+        } else if (data.message) {
+            showLoading(false);
+            showMessage(data.message, 'success', 'fas fa-check-circle');
+        } else if (data.error) {
+            showLoading(false);
+            showMessage(data.error, 'error', 'fas fa-exclamation-triangle');
+        } else {
+            showLoading(false);
+            showMessage('Unknown response from server.', 'error', 'fas fa-exclamation-triangle');
+        }
     } catch (error) {
         clearInterval(progressInterval);
         showLoading(false);
@@ -325,7 +340,6 @@ async function uploadImage() {
         fileInput.value = '';
     }
 }
-
 // Drag and drop functionality
 const uploadArea = document.querySelector('.upload-area');
 
@@ -490,3 +504,4 @@ document.addEventListener('visibilitychange', () => {
 // Handle before unload for auto-save
 
 window.addEventListener('beforeunload', autoSave);
+
