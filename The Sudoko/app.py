@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, jsonify
 import os
 import numpy as np
 from solver import SudokuSolver
+from recognizer import SudokuRecognizer
 from generator import SudokuGenerator
 
 app = Flask(__name__)
@@ -40,10 +41,38 @@ def solve_sudoku():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+# @app.route('/upload', methods=['POST'])
+# def upload_image():
+#     # Instead of processing, just return a "coming soon" message
+#     return jsonify({'message': '🟢 Feature will be available soon!'}), 200
+
 @app.route('/upload', methods=['POST'])
 def upload_image():
-    # Instead of processing, just return a "coming soon" message
-    return jsonify({'message': '🟢 Feature will be available soon!'}), 200
+    try:
+        if 'image' not in request.files:
+            return jsonify({'error': 'No image uploaded'}), 400
+        
+        file = request.files['image']
+        if file.filename == '':
+            return jsonify({'error': 'No image selected'}), 400
+        
+        # Save uploaded file
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+        file.save(filepath)
+        
+        # Recognize sudoku from image
+        grid = recognizer.recognize_sudoku(filepath)
+        
+        # Clean up uploaded file
+        os.remove(filepath)
+        
+        if grid is not None:
+            return jsonify({'grid': grid.tolist()})
+        else:
+            return jsonify({'error': 'Could not recognize Sudoku grid from image'}), 400
+            
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/generate', methods=['POST'])
 def generate_puzzle():
@@ -60,3 +89,4 @@ def generate_puzzle():
 if __name__ == '__main__':
 
     app.run(debug=True)
+
