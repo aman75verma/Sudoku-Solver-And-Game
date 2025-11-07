@@ -15,6 +15,7 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 # Initialize components
 solver = SudokuSolver()
 generator = SudokuGenerator()
+recognizer = SudokuRecognizer()
 
 @app.route('/')
 def index():
@@ -89,6 +90,7 @@ def generate_puzzle():
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))  # Render provides PORT env variable
     app.run(host="0.0.0.0", port=port)
+
 
 
 
